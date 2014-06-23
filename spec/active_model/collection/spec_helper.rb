@@ -1,6 +1,7 @@
 # spec/active_model/collection/spec_helper.rb
 
 require 'rspec'
+require 'rspec/collection_matchers'
 require 'factory_girl'
 require 'pry'
 
