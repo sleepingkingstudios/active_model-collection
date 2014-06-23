@@ -1,0 +1,19 @@
+# Local configuration
+.rspec
+.ruby-gemset
+.ruby-version
+
+# Local scripting
+bin/spec.*
+
+# OS-specific files
+.DS_Store
+
+# Documentation
+/doc
+.yardoc
+
+# compiled gem files
+*.gem
+.bundle
+Gemfile.lock
