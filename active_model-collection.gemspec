@@ -25,6 +25,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'activemodel',   '~> 4.1'
   gem.add_runtime_dependency 'activesupport', '~> 4.1'
 
+  gem.add_development_dependency 'rake',                        '~> 10.3'
   gem.add_development_dependency 'rspec',                       '~> 3.0'
   gem.add_development_dependency 'rspec-collection_matchers',   '~> 1.0'
   gem.add_development_dependency 'rspec-sleeping_king_studios', '>= 2.0.0.alpha'
