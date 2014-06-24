@@ -6,6 +6,7 @@ require 'active_support/inflector'
 
 module ActiveModel
   class Collection
+    include Enumerable
     include ActiveModel::Validations
 
     class << self
@@ -23,6 +24,8 @@ module ActiveModel
         end # if-elsif-else
       end # class method model=
     end # class << self
+
+    delegate :each, :to => :@records
 
     def initialize(*args)
       if args.blank?
@@ -45,10 +48,6 @@ module ActiveModel
  
       @records.inject(true) { |memo, record| memo && record.save(opts) }
     end # method save
-
-    def to_a
-      @records.dup
-    end # method to_a
 
     def valid?
       valid = super()

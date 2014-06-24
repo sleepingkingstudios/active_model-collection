@@ -52,7 +52,16 @@ RSpec.describe ActiveModel::Collection do
     before(:each) { described_class.model = model }
   end # shared context
 
-  let(:instance) { described_class.new }
+  shared_context 'with created records' do
+    include_context 'with a defined model and collection'
+
+    let(:params) do
+      [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+    end # let
+  end # shared context
+
+  let(:params)   { [] }
+  let(:instance) { described_class.new *params }
 
   describe '::model' do
     it { expect(described_class).to respond_to(:model).with(0).arguments }
@@ -173,6 +182,20 @@ RSpec.describe ActiveModel::Collection do
     end # describe
   end # describe
 
+  describe '#count' do
+    it { expect(instance).to respond_to(:count).with(0).arguments }
+
+    context 'with created records' do
+      include_context 'with created records'
+
+      it { expect(instance.count).to be == params.count }
+    end # context
+  end # describe
+
+  describe '#each' do
+    it { expect(instance).to respond_to(:each).with_a_block }
+  end # describe
+
   describe '#save' do
     it { expect(instance).to respond_to(:save).with(0).arguments }
     it { expect(instance).to respond_to(:save).with(1).arguments }
@@ -281,6 +304,16 @@ RSpec.describe ActiveModel::Collection do
     it { expect(instance).to respond_to(:to_a).with(0).arguments }
  
     it { expect(instance.to_a).to be == [] }
+
+    context 'with created records' do
+      include_context 'with created records'
+
+      it { expect(instance.to_a).to be_a(Array) & have(params.count).items }
+
+      it 'creates a duplicate of the array' do
+        expect { instance.to_a.pop }.not_to change(instance, :count)
+      end # it
+    end # context
   end # describe
 
   describe '#valid?' do
@@ -293,21 +326,16 @@ RSpec.describe ActiveModel::Collection do
     it { expect(instance.tap(&:valid?).errors).to have_key(:records) }
     it { expect(instance.tap(&:valid?).errors[:records]).to include("can't be blank") }
  
-    context 'with existing records' do
-      include_context 'with a defined model and collection'
- 
-      let(:params) do
-        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
-      end # let
-      let(:instance) { described_class.new *params }
+    context 'with created records' do
+      include_context 'with created records'
  
       it { expect(instance.valid?).to be true }
     end # context
  
     context 'with invalid records' do
-      let(:records) { [*0..2].map { double('model', valid?: false) } }
+      include_context 'with created records'
  
-      before(:each) { instance.instance_variable_set :@records, records }
+      before(:each) { instance.each { |record| allow(record).to receive(:valid?).and_return(false) } }
  
       it { expect(instance.valid?).to be false }
     end # context
