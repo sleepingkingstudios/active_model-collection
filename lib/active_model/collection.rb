@@ -30,16 +30,12 @@ module ActiveModel
     def initialize(*args)
       if args.blank?
         @records = []
+      elsif args.inject(true) { |memo, arg| memo && arg.is_a?(self.class.model) }
+        @records = args.dup
       else
         build *args
       end # if-else
     end # method initialize
-
-    def build(first, *rest)
-      args = [first, *rest]
- 
-      @records = args.map { |params| self.class.model.new params }
-    end # method build
 
     def save(*args)
       opts = args.extract_options!
@@ -63,6 +59,12 @@ module ActiveModel
     end # method valid?
  
     private
+
+    def build(first, *rest)
+      args = [first, *rest]
+ 
+      @records = args.map { |params| self.class.model.new params }
+    end # method build
  
     def validate_record(record)
       record.valid?

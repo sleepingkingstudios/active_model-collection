@@ -142,13 +142,20 @@ RSpec.describe ActiveModel::Collection do
   end # describe
 
   describe '#initialize' do
+    include_context 'with a defined model and collection'
+
+    describe 'with no parameters' do
+      let(:params) { [] }
+
+      it 'creates an empty collection' do
+        expect(instance.to_a).to have(0).items
+      end # it
+    end # describe
+
     describe 'with an array of params hashes' do
-      include_context 'with a defined model and collection'
- 
       let(:params) do
         [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
       end # let
-      let(:instance) { described_class.new *params }
  
       it 'creates instances of the model with the specified parameters' do
         expect(instance.to_a).to have(3).items
@@ -159,25 +166,18 @@ RSpec.describe ActiveModel::Collection do
         end # each
       end # it
     end # describe
-  end # describe
 
-  describe '#build' do
-    it { expect(instance).to respond_to(:build).with(1).arguments }
- 
-    describe 'with a defined model and collection' do
-      include_context 'with a defined model and collection'
- 
+    describe 'with an array of model instances' do
       let(:params) do
-        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+        [*0..2].map { |index| model.new }
       end # let
- 
-      it 'creates instances of the model with the specified parameters' do
-        expect { instance.build *params }.to change(instance, :to_a).to(have(3).items)
-        instance.to_a.each.with_index do |item, index|
-          expect(item).to be_a(model)
-          expect(item.integer_field).to be == params[index][:integer_field]
-          expect(item.string_field).to be  == params[index][:string_field]
-        end # each
+
+      it 'stores the model instances in the collection' do
+        expect(instance.to_a).to be == params
+      end # it
+
+      it 'creates a duplicate of the array' do
+        expect { params.pop }.not_to change(instance, :count)
       end # it
     end # describe
   end # describe
@@ -212,7 +212,6 @@ RSpec.describe ActiveModel::Collection do
       let(:params) do
         [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
       end # let
-      let(:instance) { described_class.new *params }
  
       before(:each) do
         allow_any_instance_of(model).to receive(:valid?).and_return(false)
@@ -243,7 +242,6 @@ RSpec.describe ActiveModel::Collection do
       let(:params) do
         [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
       end # it
-      let(:instance) { described_class.new *params }
  
       before(:each) do
         allow_any_instance_of(model).to receive(:valid?) do |record|
@@ -284,7 +282,6 @@ RSpec.describe ActiveModel::Collection do
       let(:params) do
         [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
       end # let
-      let(:instance) { described_class.new *params }
  
       it 'does not raise an error' do
         expect { instance.save }.not_to raise_error
