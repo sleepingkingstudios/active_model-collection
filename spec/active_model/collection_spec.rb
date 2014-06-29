@@ -7,28 +7,8 @@ require 'active_model/collection'
 RSpec.describe ActiveModel::Collection do
   shared_context 'with a defined model' do
     let(:model) do
-      Class.new do
-        include ActiveModel::Model
-        include ActiveModel::Validations
-
-        class << self
-          attr_accessor :count
-        end # class << self
-        
-        self.count = 0
-
-        attr_accessor :integer_field, :string_field
-
-        def save(*args)
-          opts = args.extract_options!
-
-          if !opts.fetch(:validate, true) || valid?
-            self.class.count += 1
-            true
-          else
-            false
-          end
-        end # method save
+      Class.new(ReferenceModel) do
+        attr_accessor :integer_field, :string_field 
       end # class
     end # let
  
