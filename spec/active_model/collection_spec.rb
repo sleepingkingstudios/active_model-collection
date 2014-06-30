@@ -8,7 +8,9 @@ RSpec.describe ActiveModel::Collection do
   shared_context 'with a defined model' do
     let(:model) do
       Class.new(ReferenceModel) do
-        attr_accessor :integer_field, :string_field 
+        attr_accessor :integer_field, :string_field
+
+        validates :integer_field, :presence => true
       end # class
     end # let
  
@@ -42,6 +44,51 @@ RSpec.describe ActiveModel::Collection do
 
   let(:params)   { [] }
   let(:instance) { described_class.new *params }
+
+  describe '::create' do
+    include_context 'with a defined model and collection'
+
+    let(:collection) { described_class.create *params }
+    let(:models)     { collection.to_a }
+
+    it { expect(described_class).to respond_to(:create).with(1..9001).arguments }
+
+    describe 'with no parameters' do
+      let(:params) { [] }
+
+      it 'raises an error' do
+        expect { described_class.create *params }.to raise_error ArgumentError
+      end # it
+    end # describe
+
+    describe 'with an array of valid params hashes' do
+      let(:params) do
+        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+      end # let
+
+      it 'creates an instance of the collection with created model objects' do
+        expect(collection).to be_a(described_class) & have(params.count).items
+      end # it
+
+      it 'saves the created model objects' do
+        expect { described_class.create *params }.to change(model, :count).by(params.count)
+      end # it
+    end # describe
+
+    describe 'with an array of invalid params hashes' do
+      let(:params) do
+        [*0..2].map { |index| { string_field: "Title #{index}" } }
+      end # let
+
+      it 'creates an instance of the collection with created model objects' do
+        expect(collection).to be_a(described_class) & have(params.count).items
+      end # it
+
+      it 'does not save the created model objects' do
+        expect { described_class.create *params }.not_to change(model, :count)
+      end # it
+    end # describe
+  end # describe
 
   describe '::model' do
     it { expect(described_class).to respond_to(:model).with(0).arguments }
@@ -190,12 +237,8 @@ RSpec.describe ActiveModel::Collection do
       include_context 'with a defined model and collection'
  
       let(:params) do
-        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+        [*0..2].map { |index| { string_field: "Title #{index}" } }
       end # let
- 
-      before(:each) do
-        allow_any_instance_of(model).to receive(:valid?).and_return(false)
-      end # before each
  
       it 'returns false' do
         expect(instance.save).to be false
@@ -220,14 +263,8 @@ RSpec.describe ActiveModel::Collection do
       include_context 'with a defined model and collection'
  
       let(:params) do
-        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+        [*0..2].map { |index| { integer_field: index.odd? ? index : nil, string_field: "Title #{index}" } }
       end # it
- 
-      before(:each) do
-        allow_any_instance_of(model).to receive(:valid?) do |record|
-          record.integer_field.even?
-        end # allow
-      end # before each
  
       it 'does not raise an error' do
         expect { instance.save }.not_to raise_error

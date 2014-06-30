@@ -10,6 +10,13 @@ module ActiveModel
     include ActiveModel::Validations
 
     class << self
+      def create(first, *rest)
+        collection = new
+        collection.send :build, first, *rest
+        collection.save
+        collection
+      end # class method create
+
       attr_reader :model
 
       def model=(klass)

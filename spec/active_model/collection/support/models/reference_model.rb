@@ -13,11 +13,16 @@ class ReferenceModel
     attr_writer :count
   end # class << self
 
+  def persisted?
+    @persisted ||= false
+  end # method persisted
+
   def save(*args)
     opts = args.extract_options!
 
     if !opts.fetch(:validate, true) || valid?
       self.class.count += 1
+      @persisted = true
       true
     else
       false
