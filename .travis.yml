@@ -3,4 +3,4 @@ rvm:
 - 2.1.2
 gemfile:
 - Gemfile
-- gemfiles/active_record4
+- gemfiles/active_record4.gemfile
