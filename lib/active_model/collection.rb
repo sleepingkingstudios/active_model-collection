@@ -17,6 +17,13 @@ module ActiveModel
         collection
       end # class method create
 
+      def create!(first, *rest)
+        collection = new
+        collection.send :build, first, *rest
+        collection.save!
+        collection
+      end # class method create!
+
       attr_reader :model
 
       def model=(klass)
@@ -52,6 +59,14 @@ module ActiveModel
       @records.inject(true) { |memo, record| memo && record.save(opts) }
     end # method save
 
+    def save!(*args)
+      opts = args.extract_options!
+
+      raise validation_error unless valid? || opts.fetch(:validate, nil) == false
+
+      @records.map { |record| record.save! opts }
+    end # method save
+
     def valid?
       valid = super()
  
@@ -79,6 +94,13 @@ module ActiveModel
  
     def validate_records
       @records.inject(true) { |memo, record| memo && validate_record(record) }
-    end # mthod validate_records
+    end # method validate_records
+
+    def validation_error
+      messages = errors.full_messages
+      @records.each { |record| messages.concat record.errors.full_messages }
+      StandardError.new 'Unable to persist collection because of the ' +
+        'following errors: ' + messages.join(',')
+    end # method validation_error
   end # class
 end # module

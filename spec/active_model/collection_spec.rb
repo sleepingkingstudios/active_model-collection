@@ -49,7 +49,6 @@ RSpec.describe ActiveModel::Collection do
     include_context 'with a defined model and collection'
 
     let(:collection) { described_class.create *params }
-    let(:models)     { collection.to_a }
 
     it { expect(described_class).to respond_to(:create).with(1..9001).arguments }
 
@@ -86,6 +85,52 @@ RSpec.describe ActiveModel::Collection do
 
       it 'does not save the created model objects' do
         expect { described_class.create *params }.not_to change(model, :count)
+      end # it
+    end # describe
+  end # describe
+
+  describe '::create!' do
+    include_context 'with a defined model and collection'
+
+    let(:collection) { described_class.create! *params }
+
+    it { expect(described_class).to respond_to(:create!).with(1..9001).arguments }
+
+    describe 'with no parameters' do
+      let(:params) { [] }
+
+      it 'raises an error' do
+        expect { described_class.create! *params }.to raise_error ArgumentError
+      end # it
+    end # describe
+
+    describe 'with an array of valid params hashes' do
+      let(:params) do
+        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+      end # let
+
+      it 'creates an instance of the collection with created model objects' do
+        expect(collection).to be_a(described_class) & have(params.count).items
+      end # it
+
+      it 'saves the created model objects' do
+        expect { described_class.create! *params }.to change(model, :count).by(params.count)
+      end # it
+    end # describe
+
+    describe 'with an array of invalid params hashes' do
+      let(:params) do
+        [*0..2].map { |index| { string_field: "Title #{index}" } }
+      end # let
+
+      it 'raises an error' do
+        expect { described_class.create! *params }.to raise_error, /Unable to persist collection/
+      end # it
+
+      it 'does not save the created model objects' do
+        expect {
+          begin; described_class.create! *params; rescue; end
+        }.not_to change(model, :count)
       end # it
     end # describe
   end # describe
@@ -224,8 +269,7 @@ RSpec.describe ActiveModel::Collection do
   end # describe
 
   describe '#save' do
-    it { expect(instance).to respond_to(:save).with(0).arguments }
-    it { expect(instance).to respond_to(:save).with(1).arguments }
+    it { expect(instance).to respond_to(:save).with(0..1).arguments }
  
     describe 'with no records' do
       it 'returns false' do
@@ -310,6 +354,88 @@ RSpec.describe ActiveModel::Collection do
  
       it 'creates the records' do
         expect { instance.save }.to change(model, :count).by(params.count)
+      end # it
+    end # describe
+  end # describe
+
+  describe '#save!' do
+    it { expect(instance).to respond_to(:save!).with(0..1).arguments }
+
+    describe 'with no records' do
+      it 'raises an error' do
+        expect { instance.save! }.to raise_error, /Unable to persist collection/
+      end # it
+    end # describe
+
+    describe 'with invalid records' do
+      include_context 'with a defined model and collection'
+ 
+      let(:params) do
+        [*0..2].map { |index| { string_field: "Title #{index}" } }
+      end # let
+
+      it 'raises an error' do
+        expect { instance.save! }.to raise_error, /Unable to persist collection/
+      end # it
+
+      it 'does not create the records' do
+        expect {
+          begin instance.save!; rescue; end
+        }.not_to change(model, :count)
+      end # it
+
+      describe 'with validate: true' do
+        it 'does not raise an error' do
+          expect { instance.save! :validate => false }.not_to raise_error
+        end # it
+
+        it 'creates the records' do
+          expect { instance.save! :validate => false }.to change(model, :count).by(params.count)
+        end # it
+      end # describe
+    end # describe
+
+    describe 'with a mix of valid and invalid records' do
+      include_context 'with a defined model and collection'
+ 
+      let(:params) do
+        [*0..2].map { |index| { integer_field: index.odd? ? index : nil, string_field: "Title #{index}" } }
+      end # it
+
+      it 'raises an error' do
+        expect { instance.save! }.to raise_error, /Unable to persist collection/
+      end # it
+
+      it 'does not create the records' do
+        expect {
+          begin instance.save!; rescue; end
+        }.not_to change(model, :count)
+      end # it
+
+      describe 'with validate: true' do
+        it 'does not raise an error' do
+          expect { instance.save! :validate => false }.not_to raise_error
+        end # it
+
+        it 'creates the records' do
+          expect { instance.save! :validate => false }.to change(model, :count).by(params.count)
+        end # it
+      end # describe
+    end # describe
+
+    describe 'with valid records' do
+      include_context 'with a defined model and collection'
+ 
+      let(:params) do
+        [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
+      end # let
+
+      it 'does not raise an error' do
+        expect { instance.save! }.not_to raise_error
+      end # it
+
+      it 'creates the records' do
+        expect { instance.save! }.to change(model, :count).by(params.count)
       end # it
     end # describe
   end # describe

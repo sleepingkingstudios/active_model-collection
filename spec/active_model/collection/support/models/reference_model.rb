@@ -2,6 +2,8 @@ require 'active_model'
 require 'active_model/validations'
 
 class ReferenceModel
+  class ValidationError < StandardError; end
+
   include ActiveModel::Model
   include ActiveModel::Validations
 
@@ -26,6 +28,18 @@ class ReferenceModel
       true
     else
       false
-    end
+    end # if-else
   end # method save
+
+  def save!(*args)
+    opts = args.extract_options!
+
+    if !opts.fetch(:validate, true) || valid?
+      self.class.count += 1
+      @persisted = true
+      true
+    else
+      raise ValidationError.new "Unable to persist #{self.class.name}"
+    end # if-else
+  end # method save!
 end # class
