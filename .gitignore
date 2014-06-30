@@ -17,3 +17,4 @@ bin/spec.*
 *.gem
 .bundle
 Gemfile.lock
+gemfiles/*.gemfile.lock

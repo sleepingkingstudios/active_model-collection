@@ -1,7 +1,6 @@
 # lib/active_model/collection.rb
 
 require 'active_model'
-require 'active_model/validations'
 require 'active_support/inflector'
 
 module ActiveModel
