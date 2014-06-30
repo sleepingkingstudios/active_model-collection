@@ -72,12 +72,10 @@ RSpec.shared_examples ActiveModel::Collection do
     end # describe
 
     describe 'with an array of invalid params hashes' do
-      let(:params) do
-        [*0..2].map { |index| { string_field: "Title #{index}" } }
-      end # let
+      let(:params) { invalid_params }
 
       it 'raises an error' do
-        expect { described_class.create! *params }.to raise_error, /Unable to persist collection/
+        expect { described_class.create! *params }.to raise_error /Unable to persist collection/
       end # it
 
       it 'does not save the created model objects' do
@@ -231,7 +229,7 @@ RSpec.shared_examples ActiveModel::Collection do
 
     describe 'with no records' do
       it 'raises an error' do
-        expect { instance.save! }.to raise_error, /Unable to persist collection/
+        expect { instance.save! }.to raise_error /Unable to persist collection/
       end # it
     end # describe
 
@@ -241,7 +239,7 @@ RSpec.shared_examples ActiveModel::Collection do
       let(:params) { invalid_params }
 
       it 'raises an error' do
-        expect { instance.save! }.to raise_error, /Unable to persist collection/
+        expect { instance.save! }.to raise_error /Unable to persist collection/
       end # it
 
       it 'does not create the records' do
@@ -267,7 +265,7 @@ RSpec.shared_examples ActiveModel::Collection do
       let(:params) { mixed_params }
 
       it 'raises an error' do
-        expect { instance.save! }.to raise_error, /Unable to persist collection/
+        expect { instance.save! }.to raise_error /Unable to persist collection/
       end # it
 
       it 'does not create the records' do
