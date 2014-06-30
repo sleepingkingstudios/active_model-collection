@@ -54,6 +54,8 @@ RSpec.describe ActiveModel::Collection do
 
   it_behaves_like ActiveModel::Collection
 
+  it_behaves_like 'MockController'
+
   describe '::model' do
     it { expect(described_class).to respond_to(:model).with(0).arguments }
  

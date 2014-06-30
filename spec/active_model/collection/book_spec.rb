@@ -42,5 +42,7 @@ if defined?(Book)
     let(:described_class) { ActiveModel::Collection }
 
     it_behaves_like ActiveModel::Collection
+
+    it_behaves_like 'MockController'
   end
 end
