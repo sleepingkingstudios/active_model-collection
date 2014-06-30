@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
   
   gem.require_path = 'lib'
   gem.files        = Dir["lib/**/*.rb", "LICENSE", "*.md"]
+  gem.test_files   = Dir["gemfiles/*.gemfile", "spec/**/*.rb"]
 
   gem.add_runtime_dependency 'activemodel',   '~> 4.1'
   gem.add_runtime_dependency 'activesupport', '~> 4.1'

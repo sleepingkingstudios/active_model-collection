@@ -6,8 +6,14 @@ require 'rspec/sleeping_king_studios'
 require 'factory_girl'
 require 'pry'
 
-#=# Require Factories, Custom Matchers, &c #=#
-Dir[File.dirname(__FILE__) + "/support/**/*.rb"].each { |f| require f }
+# Require Factories, Custom Matchers, &c
+Dir[File.dirname(__FILE__) + "/support/**/*.rb"].each { |file| require file }
+
+# Require ORM/ODM libraries, if supported
+Dir[File.dirname(__FILE__) + "/mappings/*.rb"].each { |file| require file }
+
+# Miscellaneous library configuration
+I18n.enforce_available_locales = true
 
 RSpec.configure do |config|
   # Limit a spec run to individual examples or groups by tagging them with
