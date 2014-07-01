@@ -1,4 +1,4 @@
-# spec/active_model/collection/support/examples/collection.rb
+# spec/active_model/collection/support/examples/collection_examples.rb
 
 RSpec.shared_examples ActiveModel::Collection do
   let(:params)   { [] }
