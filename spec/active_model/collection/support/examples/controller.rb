@@ -19,7 +19,7 @@ RSpec.shared_examples 'MockController' do
       end # if-else
     end # method perform_action
 
-    let(:collection) { described_class.new *params }
+    let(:collection) { described_class.new params }
 
     describe 'with valid params' do
       let(:params) { valid_params }

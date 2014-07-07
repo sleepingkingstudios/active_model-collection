@@ -9,48 +9,62 @@ module ActiveModel
     include ActiveModel::Validations
 
     class << self
-      def create(first, *rest)
+      def create args
+        validate_arguments_for_create! args
         collection = new
-        collection.send :build, first, *rest
+        collection.send :build, args
         collection.save
         collection
       end # class method create
 
-      def create!(first, *rest)
+      def create! args
+        validate_arguments_for_create! args
         collection = new
-        collection.send :build, first, *rest
+        collection.send :build, args
         collection.save!
         collection
       end # class method create!
 
       attr_reader :model
 
-      def model=(klass)
+      def model= klass
         klass = klass.constantize if klass.is_a?(String) || klass.is_a?(Symbol)
  
         if @model
-          raise StandardError.new('model is already set')
+          raise StandardError.new 'model is already set'
         elsif klass.is_a?(Class)
           @model = klass
         else
-          raise ArgumentError.new('model must be a Class or the name of a Class')
+          raise ArgumentError.new 'model must be a Class or the name of a Class'
         end # if-elsif-else
       end # class method model=
+
+      private
+
+      def validate_arguments_for_create! args
+        if !args.respond_to?(:each)
+          raise ArgumentError.new 'expected array of params hashes or model objects'
+        elsif args.empty?
+          raise ArgumentError.new 'expected non-empty array'
+        end # if
+      end # class method validate_arguments_for_create!
     end # class << self
 
     delegate :each, :to => :@records
 
-    def initialize(*args)
+    def initialize args = []
       if args.blank?
         @records = []
+      elsif !args.respond_to?(:inject)
+        raise ArgumentError.new 'expected array of params hashes or model objects'
       elsif args.inject(true) { |memo, arg| memo && arg.is_a?(self.class.model) }
         @records = args.dup
       else
-        build *args
+        build args
       end # if-else
     end # method initialize
 
-    def save(*args)
+    def save *args
       opts = args.extract_options!
  
       return false unless valid? || opts.fetch(:validate, nil) == false
@@ -58,7 +72,7 @@ module ActiveModel
       @records.inject(true) { |memo, record| memo && record.save(opts) }
     end # method save
 
-    def save!(*args)
+    def save! *args
       opts = args.extract_options!
 
       raise validation_error unless valid? || opts.fetch(:validate, nil) == false
@@ -81,13 +95,11 @@ module ActiveModel
  
     private
 
-    def build(first, *rest)
-      args = [first, *rest]
- 
+    def build args
       @records = args.map { |params| self.class.model.new params }
     end # method build
  
-    def validate_record(record)
+    def validate_record record
       record.valid?
     end # method validate_record
  

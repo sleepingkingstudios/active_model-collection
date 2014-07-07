@@ -2,20 +2,28 @@
 
 RSpec.shared_examples ActiveModel::Collection do
   let(:params)   { [] }
-  let(:instance) { described_class.new *params }
+  let(:instance) { described_class.new params }
 
   describe '::create' do
     include_context 'with a defined model and collection'
 
-    let(:collection) { described_class.create *params }
+    let(:collection) { described_class.create params }
 
-    it { expect(described_class).to respond_to(:create).with(1..9001).arguments }
+    it { expect(described_class).to respond_to(:create).with(1).arguments }
 
-    describe 'with no parameters' do
+    describe 'with a non-enumerable arguments object' do
+      let(:params) { Object.new }
+
+      it 'raises an error' do
+        expect { described_class.create! params }.to raise_error ArgumentError
+      end # it
+    end # describe
+
+    describe 'with an empty parameters array' do
       let(:params) { [] }
 
       it 'raises an error' do
-        expect { described_class.create *params }.to raise_error ArgumentError
+        expect { described_class.create params }.to raise_error ArgumentError
       end # it
     end # describe
 
@@ -27,7 +35,7 @@ RSpec.shared_examples ActiveModel::Collection do
       end # it
 
       it 'saves the created model objects' do
-        expect { described_class.create *params }.to change(model, :count).by(params.count)
+        expect { described_class.create params }.to change(model, :count).by(params.count)
       end # it
     end # describe
 
@@ -39,7 +47,7 @@ RSpec.shared_examples ActiveModel::Collection do
       end # it
 
       it 'does not save the created model objects' do
-        expect { described_class.create *params }.not_to change(model, :count)
+        expect { described_class.create params }.not_to change(model, :count)
       end # it
     end # describe
   end # describe
@@ -47,15 +55,23 @@ RSpec.shared_examples ActiveModel::Collection do
   describe '::create!' do
     include_context 'with a defined model and collection'
 
-    let(:collection) { described_class.create! *params }
+    let(:collection) { described_class.create! params }
 
-    it { expect(described_class).to respond_to(:create!).with(1..9001).arguments }
+    it { expect(described_class).to respond_to(:create!).with(1).arguments }
 
-    describe 'with no parameters' do
+    describe 'with a non-enumerable arguments object' do
+      let(:params) { Object.new }
+
+      it 'raises an error' do
+        expect { described_class.create! params }.to raise_error ArgumentError
+      end # it
+    end # describe
+
+    describe 'with an empty parameters array' do
       let(:params) { [] }
 
       it 'raises an error' do
-        expect { described_class.create! *params }.to raise_error ArgumentError
+        expect { described_class.create! params }.to raise_error ArgumentError
       end # it
     end # describe
 
@@ -67,7 +83,7 @@ RSpec.shared_examples ActiveModel::Collection do
       end # it
 
       it 'saves the created model objects' do
-        expect { described_class.create! *params }.to change(model, :count).by(params.count)
+        expect { described_class.create! params }.to change(model, :count).by(params.count)
       end # it
     end # describe
 
@@ -75,12 +91,12 @@ RSpec.shared_examples ActiveModel::Collection do
       let(:params) { invalid_params }
 
       it 'raises an error' do
-        expect { described_class.create! *params }.to raise_error /Unable to persist collection/
+        expect { described_class.create! params }.to raise_error /Unable to persist collection/
       end # it
 
       it 'does not save the created model objects' do
         expect {
-          begin; described_class.create! *params; rescue; end
+          begin; described_class.create! params; rescue; end
         }.not_to change(model, :count)
       end # it
     end # describe
@@ -89,7 +105,17 @@ RSpec.shared_examples ActiveModel::Collection do
   describe '#initialize' do
     include_context 'with a defined model and collection'
 
-    describe 'with no parameters' do
+    it { expect(described_class).to construct.with(1).arguments }
+
+    describe 'with a non-enumerable arguments object' do
+      let(:params) { Object.new }
+
+      it 'raises an error' do
+        expect { described_class.new params }.to raise_error ArgumentError
+      end # it
+    end # describe
+
+    describe 'with an empty parameters array' do
       let(:params) { [] }
 
       it 'creates an empty collection' do
