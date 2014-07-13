@@ -342,6 +342,14 @@ RSpec.shared_examples ActiveModel::Collection do
     end # context
   end # describe
 
+  describe '#update' do
+    it { expect(instance).to respond_to(:update).with(1).arguments }
+
+    it 'is an alias of #update_attributes' do
+      expect(instance.method :update).to be == instance.method(:update_attributes)
+    end # it
+  end # describe
+
   describe '#update_attributes' do
     it { expect(instance).to respond_to(:update_attributes).with(1).arguments }
 

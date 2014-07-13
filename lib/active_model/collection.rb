@@ -97,6 +97,7 @@ module ActiveModel
 
       save
     end # method update_attributes
+    alias_method :update, :update_attributes
 
     def valid?
       valid = super()
