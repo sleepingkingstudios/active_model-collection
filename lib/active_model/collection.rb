@@ -80,6 +80,24 @@ module ActiveModel
       @records.map { |record| record.save! opts }
     end # method save
 
+    def update_attributes args
+      if !args.respond_to?(:each)
+        raise ArgumentError.new 'expected array of params hashes'
+      elsif args.blank?
+        raise ArgumentError.new 'expected non-empty array'
+      elsif count != args.count
+        raise ArgumentError.new "expected #{count} params, received #{args.count}"
+      end # if
+
+      # Update the attributes on the record objects.
+      @records.each.with_index do |record, index|
+        params = args[index]
+        params.each { |attribute, value| record.send "#{attribute}=", value }
+      end # each
+
+      save
+    end # method update_attributes
+
     def valid?
       valid = super()
  

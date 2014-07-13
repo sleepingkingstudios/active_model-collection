@@ -37,20 +37,32 @@ RSpec.describe ActiveModel::Collection do
   shared_context 'with created records' do
     include_context 'with a defined model and collection'
 
-    let(:params) { valid_params }
+    let(:params) { valid_params_for_create }
   end # shared context
 
-  let(:valid_params) do
+  let(:valid_params_for_create) do
     [*0..2].map { |index| { integer_field: index, string_field: "Title #{index}" } }
   end # let
 
-  let(:invalid_params) do
+  let(:invalid_params_for_create) do
     [*0..2].map { |index| { string_field: "Title #{index}" } }
   end # let
 
-  let(:mixed_params) do
+  let(:mixed_params_for_create) do
     [*0..2].map { |index| { integer_field: index.odd? ? index : nil, string_field: "Title #{index}" } }
   end # it
+
+  let(:valid_params_for_update) do
+    [*0..2].map { |index| { integer_field: 2 * index } }
+  end # let
+
+  let(:invalid_params_for_update) do
+    [*0..2].map { |index| { integer_field: nil } }
+  end # let
+
+  let(:mixed_params_for_update) do
+    [*0..2].map { |index| { integer_field: index.odd? ? 2 * index : nil } }
+  end # let
 
   it_behaves_like ActiveModel::Collection
 

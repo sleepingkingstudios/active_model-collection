@@ -22,7 +22,7 @@ RSpec.shared_examples 'MockController' do
     let(:collection) { described_class.new params }
 
     describe 'with valid params' do
-      let(:params) { valid_params }
+      let(:params) { valid_params_for_create }
 
       it 'persists the records' do
         expect { perform_action }.to change(model, :count).by(params.count)
@@ -35,11 +35,41 @@ RSpec.shared_examples 'MockController' do
     end # describe
 
     describe 'with invalid params' do
-      let(:params) { invalid_params }
+      let(:params) { invalid_params_for_create }
 
       it 'does not persist the records' do
         expect { perform_action }.not_to change(model, :count)
       end # it
+
+      it 'calls controller#render' do
+        expect(controller).to receive(:render)
+        perform_action
+      end # it
+    end # describe
+  end # describe
+
+  describe '#update' do
+    def perform_action
+      if collection.update_attributes attributes
+        controller.redirect
+      else
+        controller.render
+      end # if-else
+    end # method perform_action
+
+    let(:collection) { described_class.new valid_params_for_create }
+
+    describe 'with valid attributes' do
+      let(:attributes) { valid_params_for_update }
+
+      it 'calls controller#redirect' do
+        expect(controller).to receive(:redirect)
+        perform_action
+      end # it
+    end # describe
+
+    describe 'with invalid attributes' do
+      let(:attributes) { invalid_params_for_update }
 
       it 'calls controller#render' do
         expect(controller).to receive(:render)
