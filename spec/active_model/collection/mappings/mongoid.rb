@@ -7,7 +7,7 @@ begin
     sessions: {
       default: {
         database: 'active_model_collection_test',
-        hosts: ['localhost:27017']
+        hosts: ['127.0.0.1:27017']
       }
     }
   })

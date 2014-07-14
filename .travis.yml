@@ -5,3 +5,5 @@ gemfile:
 - Gemfile
 - gemfiles/active_record4.gemfile
 - gemfiles/mongoid4.gemfile
+services:
+- mongodb
