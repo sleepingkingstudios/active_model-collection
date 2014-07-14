@@ -1,13 +1,13 @@
-# spec/active_model/collection/book_spec.rb
+# spec/active_model/collection/blog_post_spec.rb
 
 require 'active_model/collection/spec_helper'
 
 require 'active_model/collection'
 
-if defined?(Book)
-  RSpec.describe 'BookCollection' do
+if defined?(BlogPost)
+  RSpec.describe BlogPost do
     shared_context 'with a defined model' do
-      let(:model) { Book }
+      let(:model) { BlogPost }
     end # shared context
 
     shared_context 'with a defined collection' do
@@ -28,27 +28,27 @@ if defined?(Book)
     end # shared context
 
     let(:valid_params_for_create) do
-      [*0..2].map { |index| { isbn: 1000 + index, synopsis: "Synopsis #{index}" } }
+      [*0..2].map { |index| { index: index, title: "#{index} Blog Facts That Will Shock You!" } }
     end # let
 
     let(:invalid_params_for_create) do
-      [*0..2].map { |index| { synopsis: "Synopsis #{index}" } }
+      [*0..2].map { |index| { title: "#{index} Blog Facts That Will Shock You!" } }
     end # let
 
     let(:mixed_params_for_create) do
-      [*0..2].map { |index| { isbn: index.odd? ? 1000 + index : nil, synopsis: "Synopsis #{index}" } }
+      [*0..2].map { |index| { index: index.odd? ? index : nil, title: "#{index} Blog Facts That Will Shock You!" } }
     end # it
 
     let(:valid_params_for_update) do
-      [*0..2].map { |index| { isbn: 2000 + index } }
+      [*0..2].map { |index| { index: 100 + index } }
     end # let
 
     let(:invalid_params_for_update) do
-      [*0..2].map { |index| { isbn: nil } }
+      [*0..2].map { |index| { index: nil } }
     end # let
 
     let(:mixed_params_for_update) do
-      [*0..2].map { |index| { isbn: index.odd? ? 2000 + index : nil } }
+      [*0..2].map { |index| { index: index.odd? ? 100 + index : nil } }
     end # let
 
     let(:described_class) { ActiveModel::Collection }
@@ -56,5 +56,5 @@ if defined?(Book)
     it_behaves_like ActiveModel::Collection
 
     it_behaves_like 'MockController'
-  end
-end
+  end # describe
+end # if
