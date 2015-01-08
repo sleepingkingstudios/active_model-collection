@@ -152,6 +152,20 @@ RSpec.shared_examples ActiveModel::Collection do
     end # describe
   end # describe
 
+  describe '#blank?' do
+    it { expect(instance).to respond_to(:blank?).with(0).arguments }
+
+    context 'with no created records' do
+      it { expect(instance).to be_blank }
+    end # context
+
+    context 'with created records' do
+      include_context 'with created records'
+
+      it { expect(instance).not_to be_blank }
+    end # context
+  end # describe
+
   describe '#count' do
     it { expect(instance).to respond_to(:count).with(0).arguments }
 
@@ -164,6 +178,20 @@ RSpec.shared_examples ActiveModel::Collection do
 
   describe '#each' do
     it { expect(instance).to respond_to(:each).with_a_block }
+  end # describe
+
+  describe '#empty?' do
+    it { expect(instance).to respond_to(:empty?).with(0).arguments }
+
+    context 'with no created records' do
+      it { expect(instance).to be_empty }
+    end # context
+
+    context 'with created records' do
+      include_context 'with created records'
+
+      it { expect(instance).not_to be_empty }
+    end # context
   end # describe
 
   describe '#save' do

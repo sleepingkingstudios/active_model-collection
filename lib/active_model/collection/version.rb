@@ -2,6 +2,6 @@
 
 module ActiveModel
   class Collection
-    VERSION = '0.0.1.alpha'
+    VERSION = '0.0.1.beta'
   end # class
 end # module
