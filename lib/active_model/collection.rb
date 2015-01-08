@@ -29,7 +29,7 @@ module ActiveModel
 
       def model= klass
         klass = klass.constantize if klass.is_a?(String) || klass.is_a?(Symbol)
- 
+
         if @model
           raise StandardError.new 'model is already set'
         elsif klass.is_a?(Class)
@@ -64,11 +64,27 @@ module ActiveModel
       end # if-else
     end # method initialize
 
+    def assign_attributes args
+      if !args.respond_to?(:each)
+        raise ArgumentError.new 'expected array of params hashes'
+      elsif args.blank?
+        raise ArgumentError.new 'expected non-empty array'
+      elsif count != args.count
+        raise ArgumentError.new "expected #{count} params, received #{args.count}"
+      end # if
+
+      @records.each.with_index do |record, index|
+        attributes = args[index]
+
+        record.assign_attributes(attributes)
+      end # each
+    end # method assign_attributes
+
     def save *args
       opts = args.extract_options!
- 
+
       return false unless valid? || opts.fetch(:validate, nil) == false
- 
+
       @records.inject(true) { |memo, record| memo && record.save(opts) }
     end # method save
 
@@ -81,19 +97,7 @@ module ActiveModel
     end # method save
 
     def update_attributes args
-      if !args.respond_to?(:each)
-        raise ArgumentError.new 'expected array of params hashes'
-      elsif args.blank?
-        raise ArgumentError.new 'expected non-empty array'
-      elsif count != args.count
-        raise ArgumentError.new "expected #{count} params, received #{args.count}"
-      end # if
-
-      # Update the attributes on the record objects.
-      @records.each.with_index do |record, index|
-        params = args[index]
-        params.each { |attribute, value| record.send "#{attribute}=", value }
-      end # each
+      assign_attributes args
 
       save
     end # method update_attributes
@@ -101,27 +105,27 @@ module ActiveModel
 
     def valid?
       valid = super()
- 
+
       if @records.blank?
         errors[:records] << "can't be blank"
         valid = false
       else
         valid &&= validate_records
       end # if-else
- 
+
       valid
     end # method valid?
- 
+
     private
 
     def build args
       @records = args.map { |params| self.class.model.new params }
     end # method build
- 
+
     def validate_record record
       record.valid?
     end # method validate_record
- 
+
     def validate_records
       @records.inject(true) { |memo, record| memo && validate_record(record) }
     end # method validate_records
