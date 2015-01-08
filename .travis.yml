@@ -7,3 +7,4 @@ gemfile:
 - gemfiles/mongoid4.gemfile
 services:
 - mongodb
+script: 'bundle exec rake spec'
