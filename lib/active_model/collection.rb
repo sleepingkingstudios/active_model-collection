@@ -50,7 +50,7 @@ module ActiveModel
       end # class method validate_arguments_for_create!
     end # class << self
 
-    delegate :each, :to => :@records
+    delegate :each, :empty?, :to => :@records
 
     def initialize args = []
       if args.blank?

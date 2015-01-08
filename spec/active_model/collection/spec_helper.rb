@@ -2,7 +2,7 @@
 
 require 'rspec'
 require 'rspec/collection_matchers'
-require 'rspec/sleeping_king_studios'
+require 'rspec/sleeping_king_studios/all'
 require 'factory_girl'
 require 'pry'
 
