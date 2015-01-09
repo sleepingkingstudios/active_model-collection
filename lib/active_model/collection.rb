@@ -65,19 +65,14 @@ module ActiveModel
     end # method initialize
 
     def assign_attributes args
-      if !args.respond_to?(:each)
-        raise ArgumentError.new 'expected array of params hashes'
-      elsif args.blank?
-        raise ArgumentError.new 'expected non-empty array'
-      elsif count != args.count
-        raise ArgumentError.new "expected #{count} params, received #{args.count}"
-      end # if
-
-      @records.each.with_index do |record, index|
-        attributes = args[index]
-
-        record.assign_attributes(attributes)
-      end # each
+      case args
+      when Array
+        assign_attributes_from_array args
+      when Hash
+        assign_attributes_from_hash args
+      else
+        raise ArgumentError.new 'expected array or hash of params hashes'
+      end # case
     end # method assign_attributes
 
     def save *args
@@ -118,9 +113,54 @@ module ActiveModel
 
     private
 
+    def assign_attributes_from_array args
+      if count != args.count
+        raise ArgumentError.new "expected #{count} params, received #{args.count}"
+      end # if
+
+      @records.each.with_index do |record, index|
+        attributes = args[index]
+
+        record.assign_attributes(attributes)
+      end # each
+    end # method assign_attributes_from_array
+
+    def assign_attributes_from_hash hsh
+      raise ArgumentError.new "attributes hash keys can't be blank" if hsh.key?(nil) || hsh.key?('')
+
+      records_hash = {}
+
+      @records.each do |record|
+        record_key = extract_key(record)
+
+        if records_hash.key?(record_key)
+          raise StandardError.new "records with duplicate key #{record_key.inspect}"
+        end # if
+
+        records_hash[record_key] = record
+      end # each
+
+      extra_keys = hsh.keys - records_hash.keys
+
+      unless extra_keys.empty?
+        raise ArgumentError.new "expected to update models, but were not found"\
+          " in collection -- missing keys #{extra_keys.map(&:inspect).join ', '}"\
+          " (#{extra_keys.count} total)"
+      end # unless
+
+      hsh.each do |key, attributes|
+        record = records_hash[key]
+        record.assign_attributes attributes
+      end # each
+    end # method assign_attributes_from_hash
+
     def build args
       @records = args.map { |params| self.class.model.new params }
     end # method build
+
+    def extract_key record
+      record.id
+    end # method extract_key
 
     def validate_record record
       record.valid?

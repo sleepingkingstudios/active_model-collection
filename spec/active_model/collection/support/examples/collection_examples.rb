@@ -19,14 +19,6 @@ RSpec.shared_examples ActiveModel::Collection do
       end # it
     end # describe
 
-    describe 'with an empty array' do
-      let(:params) { [] }
-
-      it 'raises an error' do
-        expect { described_class.create params }.to raise_error ArgumentError
-      end # it
-    end # describe
-
     describe 'with an array of valid params hashes' do
       let(:params) { valid_params_for_create }
 
@@ -158,18 +150,12 @@ RSpec.shared_examples ActiveModel::Collection do
     context 'with created records' do
       include_context 'with created records'
 
+      before(:each) { instance.save! }
+
       let(:records) { instance.to_a }
 
       describe 'with a non-enumerable object' do
         let(:attributes) { Object.new }
-
-        it 'raises an error' do
-          expect { instance.assign_attributes attributes }.to raise_error ArgumentError
-        end # it
-      end # describe
-
-      describe 'with an empty array' do
-        let(:attributes) { [] }
 
         it 'raises an error' do
           expect { instance.assign_attributes attributes }.to raise_error ArgumentError
@@ -192,10 +178,36 @@ RSpec.shared_examples ActiveModel::Collection do
         end # it
       end # describe
 
+      describe 'with a hash with nil keys' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            nil                        => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'raises an error' do
+          expect { instance.assign_attributes attributes }.to raise_error ArgumentError, /can't be blank/
+        end # it
+      end # describe
+
+      describe 'with a hash with unrecognized keys' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            invalid_key                => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'raises an error' do
+          expect { instance.assign_attributes attributes }.to raise_error ArgumentError, /not found/
+        end # it
+      end # describe
+
       describe 'with an array of invalid params hashes' do
         let(:attributes) { invalid_params_for_update }
 
-        it 'updates the records' do
+        it 'sets the attributes' do
           instance.assign_attributes attributes
 
           records.each.with_index do |record, index|
@@ -209,11 +221,61 @@ RSpec.shared_examples ActiveModel::Collection do
       describe 'with an array of valid params hashes' do
         let(:attributes) { valid_params_for_update }
 
-        it 'updates the records' do
+        it 'sets the attributes' do
           instance.assign_attributes attributes
 
           records.each.with_index do |record, index|
             attributes[index].each do |attribute, value|
+              expect(record[attribute]).to be == value
+            end # each
+          end # each
+        end # it
+      end # describe
+
+      describe 'with an empty hash' do
+        let(:attributes) { {} }
+
+        it 'does not raise an error' do
+          expect { instance.assign_attributes attributes }.not_to raise_error
+        end # it
+      end # describe
+
+      describe 'with a hash of invalid params hashes' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => invalid_params_for_update.first,
+            records.last.id  => invalid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'sets the attributes' do
+          instance.assign_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+            values.each do |attribute, value|
+              expect(record[attribute]).to be == value
+            end # each
+          end # each
+        end # it
+      end # describe
+
+      describe 'with a hash of valid params hashes' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            records.last.id  => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'sets the attributes' do
+          instance.assign_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+            values.each do |attribute, value|
               expect(record[attribute]).to be == value
             end # each
           end # each
@@ -454,6 +516,8 @@ RSpec.shared_examples ActiveModel::Collection do
     context 'with created records' do
       include_context 'with created records'
 
+      before(:each) { instance.save! }
+
       let(:records) { instance.to_a }
 
       describe 'with a non-enumerable object' do
@@ -485,6 +549,32 @@ RSpec.shared_examples ActiveModel::Collection do
 
         it 'raises an error' do
           expect { instance.update_attributes attributes }.to raise_error ArgumentError
+        end # it
+      end # describe
+
+      describe 'with a hash with nil keys' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            nil                        => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'raises an error' do
+          expect { instance.assign_attributes attributes }.to raise_error ArgumentError, /can't be blank/
+        end # it
+      end # describe
+
+      describe 'with a hash with unrecognized keys' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            invalid_key                => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'raises an error' do
+          expect { instance.assign_attributes attributes }.to raise_error ArgumentError, /not found/
         end # it
       end # describe
 
@@ -542,6 +632,92 @@ RSpec.shared_examples ActiveModel::Collection do
 
           records.map(&:reload).each.with_index do |record, index|
             attributes[index].each do |attribute, value|
+              expect(record[attribute]).to be == value
+            end # each
+          end # each
+        end # it
+      end # describe
+
+      describe 'with an empty hash' do
+        let(:attributes) { {} }
+
+        it 'does not raise an error' do
+          expect { instance.update_attributes attributes }.not_to raise_error
+        end # it
+      end # describe
+
+      describe 'with a hash of invalid params hashes' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => invalid_params_for_update.first,
+            records.last.id  => invalid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'returns false' do
+          expect(instance.update_attributes attributes).to be false
+        end # it
+
+        it 'sets the attributes' do
+          instance.update_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+            values.each do |attribute, value|
+              expect(record[attribute]).to be == value
+            end # each
+          end # each
+        end # it
+
+        it 'does not update the records' do
+          records.map(&:save!)
+
+          instance.update_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first.reload
+
+            values.each do |attribute, value|
+              expect(record[attribute]).not_to be == value
+            end # each
+          end # each
+        end # it
+      end # describe
+
+      describe 'with a hash of valid params hashes' do
+        let(:attributes) do
+          params = valid_params_for_update
+          { records.first.id => valid_params_for_update.first,
+            records.last.id  => valid_params_for_update.last
+          } # end hash
+        end # let
+
+        it 'returns true' do
+          expect(instance.update_attributes attributes).to be true
+        end # it
+
+        it 'sets the attributes' do
+          instance.update_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+            values.each do |attribute, value|
+              expect(record[attribute]).to be == value
+            end # each
+          end # each
+        end # it
+
+        it 'updates the records' do
+          records.map(&:save!)
+
+          instance.update_attributes attributes
+
+          attributes.each do |key, values|
+            record = records.select { |record| instance.send(:extract_key, record) == key }.first.reload
+
+            values.each do |attribute, value|
               expect(record[attribute]).to be == value
             end # each
           end # each

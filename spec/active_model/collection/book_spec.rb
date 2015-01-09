@@ -17,7 +17,7 @@ if defined?(Book)
     shared_context 'with a defined model and collection' do
       include_context 'with a defined model'
       include_context 'with a defined collection'
-   
+
       before(:each) { described_class.model = model }
     end # shared context
 
@@ -26,6 +26,8 @@ if defined?(Book)
 
       let(:params) { valid_params_for_create }
     end # shared context
+
+    let(:invalid_key) { -1 }
 
     let(:valid_params_for_create) do
       [*0..2].map { |index| { isbn: 1000 + index, synopsis: "Synopsis #{index}" } }

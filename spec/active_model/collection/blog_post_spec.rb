@@ -17,7 +17,7 @@ if defined?(BlogPost)
     shared_context 'with a defined model and collection' do
       include_context 'with a defined model'
       include_context 'with a defined collection'
-   
+
       before(:each) { described_class.model = model }
     end # shared context
 
@@ -26,6 +26,8 @@ if defined?(BlogPost)
 
       let(:params) { valid_params_for_create }
     end # shared context
+
+    let(:invalid_key) { BSON::ObjectId.new }
 
     let(:valid_params_for_create) do
       [*0..2].map { |index| { index: index, title: "#{index} Blog Facts That Will Shock You!" } }

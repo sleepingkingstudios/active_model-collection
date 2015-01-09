@@ -59,7 +59,7 @@ Finally, on your controller you can use the collection in create/update operatio
       end
 
       def update
-        if @books.update books_params
+        if @books.update params[:books]
           redirect_to :index
         else
           render :edit
@@ -68,22 +68,67 @@ Finally, on your controller you can use the collection in create/update operatio
 
       private
 
-      def books_params
-        case params[:books]
-        when Array
-          params[:books]
-        when Hash
-          params[:books].values
-        else
-          []
-        end
-      end
-
       def build_books
-        @books = BooksCollection.new books_params
+        @books = BooksCollection.new params[:books]
       end
 
       def find_books
         @books = BooksCollection.new(Book.find params[:books].keys)
       end
     end
+
+## Handling Parameters
+
+Because an `ActiveModel::Collection` can hold multiple model instances, passing in parameters to `::create` or `#update` is more complicated than passing in a simple attributes hash. The gem currently supports two ways to create or update multiple model instances at once: by passing in an array of attribute hashes, or by passing in a hash of attribute hashes (`#update` only).
+
+### Arrays of Attributes Hashes
+
+When creating one or more model instances through an `ActiveModel::Collection`, pass in an array of Hash instances, each of which contains the desired attributes for a model instance.
+
+```
+# Creating one model instance.
+attributes = { 'title' => 'The Art of War', 'author' => 'Sun Tzu' }
+book = Book.new(attributes)
+#=> #<Book title: 'The Art Of War', author: 'Sun Tzu'>
+
+# Creating multiple model instances.
+attributes = [
+  { 'title' => 'The Art of War', 'author' => 'Sun Tzu' },
+  { 'title' => 'Vom Kriege',     'author' => 'von Clausewitz' },
+  { 'title' => 'The Prince',     'author' => 'Niccolo Machiavelli' }
+]
+collection = BooksCollection.new(attributes)
+books = collection.to_a
+#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu'>, #<Book title: 'Vom Kriege', author: 'von Clausewitz'>, #<Book title: 'The Prince', author: 'Niccolo Machiavelli'>]
+```
+
+You can also use an array of attribute hashes when updating a collection of model instances via the `#assign_attributes` or `#update` methods. However, when updating, the number of attribute hashes must match the number of model instances in the collection, and the order is important. The first model will be updated with the first attributes hash, the second model with the second hash, and so on.
+
+### Hashes of Attributes Hashes
+
+You can avoid concerns about ordering by passing in a hash of attibutes hashes to the `#assign_attributes` or `#update` methods. The key to the hash must be the `id` of the model instance to update, and the value must be a Has instance containing the desired attributes for that instance. The keys cannot be blank (nil or empty), and an error will be raised for any keys in the hash for which a corresponding model instance cannot be found in the collection.
+
+```
+# Updating multiple model instances.
+attributes = {
+  0: { isbn: 12345 },
+  1: { isbn: 67890 }
+}
+collection = BooksCollection.new(Book.find attributes.keys)
+collection.update_attributes attributes
+books = collection.to_a
+#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu', isbn: 12345>, #<Book title: 'Vom Kriege', author: 'von Clausewitz', isbn: 67890>, #<Book title: 'The Prince', author: 'Niccolo Machiavelli'>]
+```
+
+Only the model instances referenced in the hash will be updated, even if the collection contains additional model instances.
+
+You can also override the `#extract_key` method in `ActiveModel::Collection` to use a different hash key, such as a different attribute e.g. `email` or `title`, a combination of attributes or methods, or any other value based on the record. When overriding `#extract_key`, remember that the value cannot be blank (nil or empty) and must be unique to avoid errors when updating attributes.
+
+```
+# Overwriting the #extract_key method.
+class BooksCollection < ActiveModel::Collection
+  def extract_key(record)
+    record.isbn
+  end # method extract_key
+end # class
+```

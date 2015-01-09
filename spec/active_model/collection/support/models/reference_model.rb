@@ -13,6 +13,11 @@ class ReferenceModel
     end # class method count
 
     attr_writer :count
+
+    def next_id
+      @next_id ||= -1
+      @next_id += 1
+    end # class method next_id
   end # class << self
 
   def [](attribute)
@@ -20,6 +25,14 @@ class ReferenceModel
   rescue NoMethodError
     nil
   end # method []
+
+  def initialize(*args)
+    super
+
+    @id = self.class.next_id
+  end # method initialize
+
+  attr_reader :id
 
   def assign_attributes(attributes)
     attributes.each do |attribute, value|
@@ -58,7 +71,7 @@ class ReferenceModel
 
   def persist_attributes
     @persisted_attributes = {}.tap do |hsh|
-      (instance_variables - [:@errors, :@persisted, :@validation_context]).each do |attribute|
+      (instance_variables - [:@errors, :@id, :@persisted, :@validation_context]).each do |attribute|
         hsh[attribute] = instance_variable_get(attribute)
       end # each
     end # tap
