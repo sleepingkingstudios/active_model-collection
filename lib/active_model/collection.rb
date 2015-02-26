@@ -121,7 +121,7 @@ module ActiveModel
       @records.each.with_index do |record, index|
         attributes = args[index]
 
-        record.assign_attributes(attributes)
+        assign_record_attributes record, attributes
       end # each
     end # method assign_attributes_from_array
 
@@ -150,12 +150,20 @@ module ActiveModel
 
       hsh.each do |key, attributes|
         record = records_hash[key]
-        record.assign_attributes attributes
+        assign_record_attributes record, attributes
       end # each
     end # method assign_attributes_from_hash
 
+    def assign_record_attributes record, attributes
+      record.assign_attributes attributes
+    end # method assign_record_attributes
+
     def build args
-      @records = args.map { |params| self.class.model.new params }
+      @records = Array.new(args.count).map { self.class.model.new }
+
+      assign_attributes_from_array(args)
+
+      @records
     end # method build
 
     def extract_key record

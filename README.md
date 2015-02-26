@@ -99,7 +99,7 @@ attributes = [
 ]
 collection = BooksCollection.new(attributes)
 books = collection.to_a
-#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu'>, #<Book title: 'Vom Kriege', author: 'von Clausewitz'>, #<Book title: 'The Prince', author: 'Niccolo Machiavelli'>]
+#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu'>, ...
 ```
 
 You can also use an array of attribute hashes when updating a collection of model instances via the `#assign_attributes` or `#update` methods. However, when updating, the number of attribute hashes must match the number of model instances in the collection, and the order is important. The first model will be updated with the first attributes hash, the second model with the second hash, and so on.
@@ -109,6 +109,12 @@ You can also use an array of attribute hashes when updating a collection of mode
 You can avoid concerns about ordering by passing in a hash of attibutes hashes to the `#assign_attributes` or `#update` methods. The key to the hash must be the `id` of the model instance to update, and the value must be a Has instance containing the desired attributes for that instance. The keys cannot be blank (nil or empty), and an error will be raised for any keys in the hash for which a corresponding model instance cannot be found in the collection.
 
 ```
+# Updating one model instance.
+attributes = { isbn: 12345 }
+book       = Book.find(0)
+book.update_attributes(attributes)
+#=> #<Book title: 'The Art Of War', author: 'Sun Tzu', isbn: 12345>
+
 # Updating multiple model instances.
 attributes = {
   0: { isbn: 12345 },
@@ -117,7 +123,7 @@ attributes = {
 collection = BooksCollection.new(Book.find attributes.keys)
 collection.update_attributes attributes
 books = collection.to_a
-#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu', isbn: 12345>, #<Book title: 'Vom Kriege', author: 'von Clausewitz', isbn: 67890>, #<Book title: 'The Prince', author: 'Niccolo Machiavelli'>]
+#=> [#<Book title: 'The Art Of War', author: 'Sun Tzu', isbn: 12345>, ...
 ```
 
 Only the model instances referenced in the hash will be updated, even if the collection contains additional model instances.
@@ -125,10 +131,37 @@ Only the model instances referenced in the hash will be updated, even if the col
 You can also override the `#extract_key` method in `ActiveModel::Collection` to use a different hash key, such as a different attribute e.g. `email` or `title`, a combination of attributes or methods, or any other value based on the record. When overriding `#extract_key`, remember that the value cannot be blank (nil or empty) and must be unique to avoid errors when updating attributes.
 
 ```
-# Overwriting the #extract_key method.
+# Overriding the #extract_key method.
 class BooksCollection < ActiveModel::Collection
   def extract_key(record)
     record.isbn
   end # method extract_key
 end # class
+```
+
+## Customizing Attribute Assignment
+
+By default, to create or update the attributes of a model instance, the `ActiveModel::Collection` will use the instance's built-in `#assign_attributes` method. This behavior can be changed by overriding the `#assign_record_attributes` method on the collection.
+
+```
+# Overriding the #assign_record_attributes method.
+class BooksCollection < ActiveModel::Collection
+  def assign_record_attributes(record, attributes)
+    form = BookForm.new(record)
+    form.assign_attributes(attributes)
+  end # method assign_record_attributes
+end # class
+```
+
+Note that overriding `#assign_record_attributes` will also change how model instances are created when creating new model instances using `::create`. To create a group of model instances without the customized behavior, simply create an array of model instances beforehand and create the collection with the array of model instances as the parameter.
+
+```
+# Creating a collection without the custom deserialization behavior.
+attributes = [
+  { 'title' => 'The Art of War', 'author' => 'Sun Tzu' },
+  { 'title' => 'Vom Kriege',     'author' => 'von Clausewitz' },
+  { 'title' => 'The Prince',     'author' => 'Niccolo Machiavelli' }
+]
+books = attributes.map { |hsh| Book.new hsh }
+collection = BooksCollection.new(books)
 ```

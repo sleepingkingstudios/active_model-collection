@@ -20,13 +20,13 @@ class ReferenceModel
     end # class method next_id
   end # class << self
 
-  def [](attribute)
+  def [] attribute
     self.send attribute
   rescue NoMethodError
     nil
   end # method []
 
-  def initialize(*args)
+  def initialize *args
     super
 
     @id = self.class.next_id
@@ -34,7 +34,7 @@ class ReferenceModel
 
   attr_reader :id
 
-  def assign_attributes(attributes)
+  def assign_attributes attributes
     attributes.each do |attribute, value|
       self.send(:"#{attribute}=", value)
     end # each
@@ -50,7 +50,7 @@ class ReferenceModel
     self
   end # method reload
 
-  def save(*args)
+  def save *args
     opts = args.extract_options!
 
     if !opts.fetch(:validate, true) || valid?
@@ -63,9 +63,14 @@ class ReferenceModel
     end # if-else
   end # method save
 
-  def save!(*args)
+  def save! *args
     raise ValidationError.new "Unable to persist #{self.class.name}" unless save(*args)
   end # method save!
+
+  def update_attributes attributes
+    assign_attributes attributes
+    save
+  end # method update_attributes
 
   private
 

@@ -281,6 +281,83 @@ RSpec.shared_examples ActiveModel::Collection do
           end # each
         end # it
       end # describe
+
+      describe 'with a custom method for assigning attributes' do
+        shared_examples 'assigns attributes via the custom method' do
+          it 'assigns attributes via the custom method' do
+            constructor = form_class.method(:new)
+            expect(form_class).to receive(:new).exactly(attributes.count).times do |record|
+              form = constructor.call(record)
+
+              expect(form).to receive(:assign_attributes).and_call_original
+
+              form
+            end # expect
+
+            instance.assign_attributes attributes
+          end # it
+        end # shared_examples
+
+        let(:form_name)  { "#{records.first.class.name}Form" }
+        let(:form_class) { Object.const_get(form_name) }
+
+        before(:each) do
+          klass = Class.new(Struct.new :object) do
+            def assign_attributes attributes
+              object.assign_attributes attributes
+            end # method assign_attributes
+          end # klass
+          Object.const_set(form_name, klass)
+
+          allow(instance).to receive(:assign_record_attributes) do |record, attributes|
+            form = form_class.new(record)
+            form.assign_attributes attributes
+          end # method
+        end # before each
+
+        after(:each) do
+          Object.send :remove_const, form_name
+        end # after each
+
+        describe 'with an array of valid params hashes' do
+          let(:attributes) { valid_params_for_update }
+
+          include_examples 'assigns attributes via the custom method'
+
+          it 'sets the attributes' do
+            instance.assign_attributes attributes
+
+            records.each.with_index do |record, index|
+              attributes[index].each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+        end # describe
+
+        describe 'with a hash of valid params hashes' do
+          let(:attributes) do
+            params = valid_params_for_update
+            { records.first.id => valid_params_for_update.first,
+              records.last.id  => valid_params_for_update.last
+            } # end hash
+          end # let
+
+          include_examples 'assigns attributes via the custom method'
+
+          it 'sets the attributes' do
+            instance.assign_attributes attributes
+
+            attributes.each do |key, values|
+              record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+              values.each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+        end # describe
+      end # describe
     end # describe
   end # describe
 
@@ -722,6 +799,117 @@ RSpec.shared_examples ActiveModel::Collection do
             end # each
           end # each
         end # it
+      end # describe
+
+      describe 'with a custom method for assigning attributes' do
+        shared_examples 'assigns attributes via the custom method' do
+          it 'assigns attributes via the custom method' do
+            constructor = form_class.method(:new)
+            expect(form_class).to receive(:new).exactly(attributes.count).times do |record|
+              form = constructor.call(record)
+
+              expect(form).to receive(:assign_attributes).and_call_original
+
+              form
+            end # expect
+
+            instance.assign_attributes attributes
+          end # it
+        end # shared_examples
+
+        let(:form_name)  { "#{records.first.class.name}Form" }
+        let(:form_class) { Object.const_get(form_name) }
+
+        before(:each) do
+          klass = Class.new(Struct.new :object) do
+            def assign_attributes attributes
+              object.assign_attributes attributes
+            end # method assign_attributes
+          end # klass
+          Object.const_set(form_name, klass)
+
+          allow(instance).to receive(:assign_record_attributes) do |record, attributes|
+            form = form_class.new(record)
+            form.assign_attributes attributes
+          end # method
+        end # before each
+
+        after(:each) do
+          Object.send :remove_const, form_name
+        end # after each
+
+        describe 'with an array of valid params hashes' do
+          let(:attributes) { valid_params_for_update }
+
+          include_examples 'assigns attributes via the custom method'
+
+          it 'returns true' do
+            expect(instance.update_attributes attributes).to be true
+          end # it
+
+          it 'sets the attributes' do
+            instance.update_attributes attributes
+
+            records.each.with_index do |record, index|
+              attributes[index].each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+
+          it 'updates the records' do
+            records.map(&:save!)
+
+            instance.update_attributes attributes
+
+            records.map(&:reload).each.with_index do |record, index|
+              attributes[index].each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+        end # describe
+
+        describe 'with a hash of valid params hashes' do
+          let(:attributes) do
+            params = valid_params_for_update
+            { records.first.id => valid_params_for_update.first,
+              records.last.id  => valid_params_for_update.last
+            } # end hash
+          end # let
+
+          include_examples 'assigns attributes via the custom method'
+
+          it 'returns true' do
+            expect(instance.update_attributes attributes).to be true
+          end # it
+
+          it 'sets the attributes' do
+            instance.update_attributes attributes
+
+            attributes.each do |key, values|
+              record = records.select { |record| instance.send(:extract_key, record) == key }.first
+
+              values.each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+
+          it 'updates the records' do
+            records.map(&:save!)
+
+            instance.update_attributes attributes
+
+            attributes.each do |key, values|
+              record = records.select { |record| instance.send(:extract_key, record) == key }.first.reload
+
+              values.each do |attribute, value|
+                expect(record[attribute]).to be == value
+              end # each
+            end # each
+          end # it
+        end # describe
       end # describe
     end # context
   end # describe
